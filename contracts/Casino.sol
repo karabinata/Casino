@@ -49,7 +49,7 @@ contract Casino {
         if(numberOfBets >= maxAmountOfBets) generateNumberWinner();
     }
     
-    function checkPlayerExists(address playerAddr) view public returns(bool) {
+    function checkPlayerExists(address playerAddr) public returns(bool) {
         for(uint i = 0; i < players.length; i++) {
             if(players[i] == playerAddr) {
                 return true;

@@ -162,7 +162,7 @@ const MyContract = web3.eth.contract([
 		"type": "fallback"
 	}
 ])
-      this.state.ContractInstance = MyContract.at("0x53d9468ae772b27f6b49c108d2d1677c122b2b52")
+      this.state.ContractInstance = MyContract.at("0x2F17B24e81dE8a2dCc85961BFb7873e99cbCF004")
    }
 componentDidMount(){
       this.updateState()
@@ -202,34 +202,30 @@ updateState(){
 
    setupListeners() {
       let numberNodes = this.refs.numbers.querySelectorAll('li')
-      let colorNodes = this.refs.colors.querySelectorAll('li')
-      let number;
       numberNodes.forEach(number => {
          number.addEventListener('click', event => {
             event.target.className = 'number-selected'
-            number = parseInt(event.target.innerHTML)
+            let betSymbols = event.target.innerHTML.split('')
+            let symbol = betSymbols[0]
+            let number = parseInt(betSymbols[1])
+            this.voteNumber(number, symbol, done => {
+
+               // Remove the other number selected
+               for(let i = 0; i < numberNodes.length; i++){
+                numberNodes[i].className = ''
+               }
+            })
          })
       })
-      colorNodes.forEach(color => {
-        color.addEventListener('click', event => {
-           event.target.className = 'color-selected'
-           this.voteColor(number, event.target.innerHTML, done => {
-              for(let i = 0; i < colorNodes.length; i++){
-                 colorNodes[i].className = ''
-                 numberNodes[i].className = ''
-              }
-           })
-        })
-     })
    }
-vote(number, color, cb){
+voteNumber(number, color, cb){
       let bet = this.refs['ether-bet'].value
 if(!bet) bet = 0.1
 if(parseFloat(bet) < this.state.minimumBet){
          alert('You must bet more than the minimum')
          cb()
       } else {
-         this.state.ContractInstance.bet(number, {
+         this.state.ContractInstance.bet(number, color, {
             gas: 300000,
             from: web3.eth.accounts[0],
             value: web3.toWei(bet, 'ether')
@@ -265,21 +261,15 @@ render(){
             </div>
 <hr/>
 <h2>Vote for the next number and color</h2>
-<label>
+    <label>
         <b>How much Ether do you want to bet? <input className="bet-input" ref="ether-bet" type="number" placeholder={this.state.minimumBet}/></b> ether
         <br/>
     </label>
-    <ul ref="colors">
-        <li>A</li>
-        <li>K</li>
-        <li>Q</li>
-        <li>D</li>
-    </ul>
    <ul ref="numbers">
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
-        <li>4</li>
+        <li>A1</li>
+        <li>K1</li>
+        <li>Q1</li>
+        <li>D1</li>
     </ul>
          </div>
       )
