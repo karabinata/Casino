@@ -20,6 +20,8 @@ contract Casino {
        Card bet;
     }
     
+    event LatestWinn(uint number, string color);
+    
     mapping(address => Player) playerInfo;
     
     function Casino(uint256 _minimumBet) public {
@@ -49,7 +51,7 @@ contract Casino {
         if(numberOfBets >= maxAmountOfBets) generateNumberWinner();
     }
     
-    function checkPlayerExists(address playerAddr) public returns(bool) {
+    function checkPlayerExists(address playerAddr) view public returns(bool) {
         for(uint i = 0; i < players.length; i++) {
             if(players[i] == playerAddr) {
                 return true;
@@ -72,6 +74,7 @@ contract Casino {
         
         string colorWinner = colors[randomColorNumber - 1];
         
+        LatestWinn(randomNum, colorWinner);
         distibutePrice(randomNum, colorWinner);
     }
     
@@ -93,12 +96,11 @@ contract Casino {
         
         players.length = 0;
         
-        uint256 winnerEtherAmount = totalBet / winners.length;
-        
         if(count == 0) {
             owner.transfer(totalBet);
         }
         else {
+            uint256 winnerEtherAmount = totalBet / count;
             for(uint j = 0; j < count; j++){
                 if(winners[j] != address(0)) {
                     winners[j].transfer(winnerEtherAmount);

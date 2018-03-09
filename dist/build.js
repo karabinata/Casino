@@ -19268,360 +19268,942 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var App = function (_React$Component) {
-			_inherits(App, _React$Component);
+	_inherits(App, _React$Component);
 
-			function App(props) {
-						_classCallCheck(this, App);
+	function App(props) {
+		_classCallCheck(this, App);
 
-						var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+		var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-						_this.state = {
-									lastWinner: 0,
-									numberOfBets: 0,
-									minimumBet: 0,
-									totalBet: 0,
-									maxAmountOfBets: 0
-						};
-						if (typeof web3 != 'undefined') {
-									console.log("Using web3 detected from external source like Metamask");
-									_this.web3 = new _web2.default(web3.currentProvider);
-						} else {
-									console.log("No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-									_this.web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://localhost:8545"));
+		_this.state = {
+			latestWinn: { number: 0, color: "F" },
+			numberOfBets: 0,
+			minimumBet: 0,
+			totalBet: 0,
+			maxAmountOfBets: 0
+		};
+		if (typeof web3 != 'undefined') {
+			console.log("Using web3 detected from external source like Metamask");
+			_this.web3 = new _web2.default(web3.currentProvider);
+		} else {
+			console.log("No web3 detected.");
+			_this.web3 = new _web2.default(new _web2.default.providers.HttpProvider("http://localhost:8545"));
+		}
+		var MyContract = web3.eth.contract([{
+			"constant": true,
+			"inputs": [],
+			"name": "totalBet",
+			"outputs": [{
+				"name": "",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": true,
+			"inputs": [],
+			"name": "numberOfBets",
+			"outputs": [{
+				"name": "",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": true,
+			"inputs": [],
+			"name": "minimumBet",
+			"outputs": [{
+				"name": "",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": true,
+			"inputs": [],
+			"name": "maxAmountOfBets",
+			"outputs": [{
+				"name": "",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": true,
+			"inputs": [{
+				"name": "playerAddr",
+				"type": "address"
+			}],
+			"name": "checkPlayerExists",
+			"outputs": [{
+				"name": "",
+				"type": "bool"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": true,
+			"inputs": [],
+			"name": "randomNum",
+			"outputs": [{
+				"name": "",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		}, {
+			"constant": false,
+			"inputs": [],
+			"name": "generateNumberWinner",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}, {
+			"anonymous": false,
+			"inputs": [{
+				"indexed": false,
+				"name": "number",
+				"type": "uint256"
+			}, {
+				"indexed": false,
+				"name": "color",
+				"type": "string"
+			}],
+			"name": "LatestWinn",
+			"type": "event"
+		}, {
+			"constant": false,
+			"inputs": [{
+				"name": "number",
+				"type": "uint256"
+			}, {
+				"name": "color",
+				"type": "string"
+			}],
+			"name": "bet",
+			"outputs": [],
+			"payable": true,
+			"stateMutability": "payable",
+			"type": "function"
+		}, {
+			"constant": false,
+			"inputs": [],
+			"name": "kill",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}, {
+			"inputs": [{
+				"name": "_minimumBet",
+				"type": "uint256"
+			}],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		}, {
+			"payable": true,
+			"stateMutability": "payable",
+			"type": "fallback"
+		}]);
+		_this.state.ContractInstance = MyContract.at("0x9a12fa2b64e3bc5a24f75cf5f849a5de96bcac89");
+		return _this;
+	}
+
+	_createClass(App, [{
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			this.updateState();
+			this.setupListeners();
+			setInterval(this.updateState.bind(this), 10e3);
+		}
+	}, {
+		key: 'updateState',
+		value: function updateState() {
+			var _this2 = this;
+
+			this.state.ContractInstance.minimumBet(function (err, result) {
+				if (result != null) {
+					_this2.setState({
+						minimumBet: parseFloat(web3.fromWei(result, 'ether'))
+					});
+				}
+			});
+			this.state.ContractInstance.totalBet(function (err, result) {
+				if (result != null) {
+					_this2.setState({
+						totalBet: parseFloat(web3.fromWei(result, 'ether'))
+					});
+				}
+			});
+			this.state.ContractInstance.numberOfBets(function (err, result) {
+				if (result != null) {
+					_this2.setState({
+						numberOfBets: parseInt(result)
+					});
+				}
+			});
+			this.state.ContractInstance.maxAmountOfBets(function (err, result) {
+				if (result != null) {
+					_this2.setState({
+						maxAmountOfBets: parseInt(result)
+					});
+				}
+			});
+			var filter = { address: web3.eth.accounts[0] };
+			var events = this.state.ContractInstance.allEvents(filter);
+
+			events.LatestWinn.watch(function (err, result) {
+				console.log('result: ' + result.number);
+				if (!error) {
+					_this2.setState({
+						latestWinn: { number: result.number, color: result.color }
+					});
+				}
+			});
+		}
+	}, {
+		key: 'setupListeners',
+		value: function setupListeners() {
+			var _this3 = this;
+
+			var numberNodes = this.refs.numbers.querySelectorAll('li');
+			numberNodes.forEach(function (number) {
+				number.addEventListener('click', function (event) {
+					event.target.className = 'number-selected';
+					var betSymbols = event.target.id.split('');
+					var symbol = betSymbols[0];
+					var number = parseInt(betSymbols[1]);
+					_this3.voteNumber(number, symbol, function (done) {
+
+						// Remove the other number selected
+						for (var i = 0; i < numberNodes.length; i++) {
+							numberNodes[i].className = '';
 						}
-						var MyContract = web3.eth.contract([{
-									"constant": false,
-									"inputs": [],
-									"name": "generateNumberWinner",
-									"outputs": [],
-									"payable": false,
-									"stateMutability": "nonpayable",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [],
-									"name": "numberOfBets",
-									"outputs": [{
-												"name": "",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [{
-												"name": "playerAddr",
-												"type": "address"
-									}],
-									"name": "checkPlayerExists",
-									"outputs": [{
-												"name": "",
-												"type": "bool"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"constant": false,
-									"inputs": [],
-									"name": "kill",
-									"outputs": [],
-									"payable": false,
-									"stateMutability": "nonpayable",
-									"type": "function"
-						}, {
-									"constant": false,
-									"inputs": [{
-												"name": "number",
-												"type": "uint256"
-									}, {
-												"name": "color",
-												"type": "string"
-									}],
-									"name": "bet",
-									"outputs": [],
-									"payable": true,
-									"stateMutability": "payable",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [],
-									"name": "minimumBet",
-									"outputs": [{
-												"name": "",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [],
-									"name": "maxAmountOfBets",
-									"outputs": [{
-												"name": "",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [],
-									"name": "randomNum",
-									"outputs": [{
-												"name": "",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"constant": true,
-									"inputs": [],
-									"name": "totalBet",
-									"outputs": [{
-												"name": "",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "view",
-									"type": "function"
-						}, {
-									"inputs": [{
-												"name": "_minimumBet",
-												"type": "uint256"
-									}],
-									"payable": false,
-									"stateMutability": "nonpayable",
-									"type": "constructor"
-						}, {
-									"payable": true,
-									"stateMutability": "payable",
-									"type": "fallback"
-						}]);
-						_this.state.ContractInstance = MyContract.at("0x2F17B24e81dE8a2dCc85961BFb7873e99cbCF004");
-						return _this;
+					});
+				});
+			});
+		}
+	}, {
+		key: 'voteNumber',
+		value: function voteNumber(number, color, cb) {
+			var bet = this.refs['ether-bet'].value;
+			if (!bet) bet = 0.1;
+			if (parseFloat(bet) < this.state.minimumBet) {
+				alert('You must bet more than the minimum');
+				cb();
+			} else {
+				this.state.ContractInstance.bet(number, color, {
+					gas: 300000,
+					from: web3.eth.accounts[0],
+					value: web3.toWei(bet, 'ether')
+				}, function (err, result) {
+					cb();
+				});
 			}
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			return _react2.default.createElement(
+				'div',
+				{ className: 'main-container' },
+				_react2.default.createElement(
+					'h1',
+					null,
+					'Bet for your best card'
+				),
+				_react2.default.createElement(
+					'div',
+					{ className: 'block' },
+					_react2.default.createElement(
+						'b',
+						null,
+						'Number of bets:'
+					),
+					' \xA0',
+					_react2.default.createElement(
+						'span',
+						null,
+						this.state.numberOfBets
+					)
+				),
+				_react2.default.createElement(
+					'div',
+					{ className: 'block' },
+					_react2.default.createElement(
+						'b',
+						null,
+						'Total ether bet:'
+					),
+					' \xA0',
+					_react2.default.createElement(
+						'span',
+						null,
+						this.state.totalBet,
+						' ether'
+					)
+				),
+				_react2.default.createElement(
+					'div',
+					{ className: 'block' },
+					_react2.default.createElement(
+						'b',
+						null,
+						'Minimum bet:'
+					),
+					' \xA0',
+					_react2.default.createElement(
+						'span',
+						null,
+						this.state.minimumBet,
+						' ether'
+					)
+				),
+				_react2.default.createElement(
+					'div',
+					{ className: 'block' },
+					_react2.default.createElement(
+						'b',
+						null,
+						'Latest winning card:'
+					),
+					' \xA0',
+					_react2.default.createElement(
+						'span',
+						null,
+						this.state.latestWinn.number,
+						' ',
+						console.log(this.state.latestWinn.number)
+					)
+				),
+				_react2.default.createElement('hr', null),
+				_react2.default.createElement(
+					'h2',
+					null,
+					'Vote for the next card'
+				),
+				_react2.default.createElement(
+					'label',
+					null,
+					_react2.default.createElement(
+						'b',
+						null,
+						'How much Ether do you want to bet? ',
+						_react2.default.createElement('input', { className: 'bet-input', ref: 'ether-bet', type: 'number', placeholder: this.state.minimumBet })
+					),
+					' ether',
+					_react2.default.createElement('br', null)
+				),
+				_react2.default.createElement(
+					'ul',
+					{ ref: 'numbers', 'class': 'outline shadow rounded' },
+					_react2.default.createElement(
+						'li',
+						{ id: 'A1' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2660'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'A2' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2665'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'A3' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2666'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'A4' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2663'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'A'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'K1' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2660'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'K2' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2665'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'K3' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2666'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'K4' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2663'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'K'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'Q1' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2660'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'Q2' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2665'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'Q3' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2666'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'Q4' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2663'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'Q'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'D1' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2660'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2660'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'D2' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2665'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2665'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'D3' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2666'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2666'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							)
+						)
+					),
+					_react2.default.createElement(
+						'li',
+						{ id: 'D4' },
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'top' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							)
+						),
+						_react2.default.createElement(
+							'h1',
+							null,
+							'\u2663'
+						),
+						_react2.default.createElement(
+							'div',
+							{ 'class': 'bottom' },
+							_react2.default.createElement(
+								'span',
+								null,
+								'\u2663'
+							),
+							_react2.default.createElement(
+								'span',
+								null,
+								'D'
+							)
+						)
+					)
+				)
+			);
+		}
+	}]);
 
-			_createClass(App, [{
-						key: 'componentDidMount',
-						value: function componentDidMount() {
-									this.updateState();
-									this.setupListeners();
-									setInterval(this.updateState.bind(this), 10e3);
-						}
-			}, {
-						key: 'updateState',
-						value: function updateState() {
-									var _this2 = this;
-
-									this.state.ContractInstance.minimumBet(function (err, result) {
-												if (result != null) {
-															_this2.setState({
-																		minimumBet: parseFloat(web3.fromWei(result, 'ether'))
-															});
-												}
-									});
-									this.state.ContractInstance.totalBet(function (err, result) {
-												if (result != null) {
-															_this2.setState({
-																		totalBet: parseFloat(web3.fromWei(result, 'ether'))
-															});
-												}
-									});
-									this.state.ContractInstance.numberOfBets(function (err, result) {
-												if (result != null) {
-															_this2.setState({
-																		numberOfBets: parseInt(result)
-															});
-												}
-									});
-									this.state.ContractInstance.maxAmountOfBets(function (err, result) {
-												if (result != null) {
-															_this2.setState({
-																		maxAmountOfBets: parseInt(result)
-															});
-												}
-									});
-						}
-			}, {
-						key: 'setupListeners',
-						value: function setupListeners() {
-									var _this3 = this;
-
-									var numberNodes = this.refs.numbers.querySelectorAll('li');
-									numberNodes.forEach(function (number) {
-												number.addEventListener('click', function (event) {
-															event.target.className = 'number-selected';
-															var betSymbols = event.target.innerHTML.split('');
-															var symbol = betSymbols[0];
-															var number = parseInt(betSymbols[1]);
-															_this3.voteNumber(number, symbol, function (done) {
-
-																		// Remove the other number selected
-																		for (var i = 0; i < numberNodes.length; i++) {
-																					numberNodes[i].className = '';
-																		}
-															});
-												});
-									});
-						}
-			}, {
-						key: 'voteNumber',
-						value: function voteNumber(number, color, cb) {
-									var bet = this.refs['ether-bet'].value;
-									if (!bet) bet = 0.1;
-									if (parseFloat(bet) < this.state.minimumBet) {
-												alert('You must bet more than the minimum');
-												cb();
-									} else {
-												this.state.ContractInstance.bet(number, color, {
-															gas: 300000,
-															from: web3.eth.accounts[0],
-															value: web3.toWei(bet, 'ether')
-												}, function (err, result) {
-															cb();
-												});
-									}
-						}
-			}, {
-						key: 'render',
-						value: function render() {
-									return _react2.default.createElement(
-												'div',
-												{ className: 'main-container' },
-												_react2.default.createElement(
-															'h1',
-															null,
-															'Bet for your best number and win huge amounts of Ether'
-												),
-												_react2.default.createElement(
-															'div',
-															{ className: 'block' },
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'Number of bets:'
-															),
-															' \xA0',
-															_react2.default.createElement(
-																		'span',
-																		null,
-																		this.state.numberOfBets
-															)
-												),
-												_react2.default.createElement(
-															'div',
-															{ className: 'block' },
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'Last number winner:'
-															),
-															' \xA0',
-															_react2.default.createElement(
-																		'span',
-																		null,
-																		this.state.lastWinner
-															)
-												),
-												_react2.default.createElement(
-															'div',
-															{ className: 'block' },
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'Total ether bet:'
-															),
-															' \xA0',
-															_react2.default.createElement(
-																		'span',
-																		null,
-																		this.state.totalBet,
-																		' ether'
-															)
-												),
-												_react2.default.createElement(
-															'div',
-															{ className: 'block' },
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'Minimum bet:'
-															),
-															' \xA0',
-															_react2.default.createElement(
-																		'span',
-																		null,
-																		this.state.minimumBet,
-																		' ether'
-															)
-												),
-												_react2.default.createElement(
-															'div',
-															{ className: 'block' },
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'Max amount of bets:'
-															),
-															' \xA0',
-															_react2.default.createElement(
-																		'span',
-																		null,
-																		this.state.maxAmountOfBets,
-																		' ether'
-															)
-												),
-												_react2.default.createElement('hr', null),
-												_react2.default.createElement(
-															'h2',
-															null,
-															'Vote for the next number and color'
-												),
-												_react2.default.createElement(
-															'label',
-															null,
-															_react2.default.createElement(
-																		'b',
-																		null,
-																		'How much Ether do you want to bet? ',
-																		_react2.default.createElement('input', { className: 'bet-input', ref: 'ether-bet', type: 'number', placeholder: this.state.minimumBet })
-															),
-															' ether',
-															_react2.default.createElement('br', null)
-												),
-												_react2.default.createElement(
-															'ul',
-															{ ref: 'numbers' },
-															_react2.default.createElement(
-																		'li',
-																		null,
-																		'A1'
-															),
-															_react2.default.createElement(
-																		'li',
-																		null,
-																		'K1'
-															),
-															_react2.default.createElement(
-																		'li',
-																		null,
-																		'Q1'
-															),
-															_react2.default.createElement(
-																		'li',
-																		null,
-																		'D1'
-															)
-												)
-									);
-						}
-			}]);
-
-			return App;
+	return App;
 }(_react2.default.Component);
 
 _reactDom2.default.render(_react2.default.createElement(App, null), document.querySelector('#root'));
@@ -38740,7 +39322,7 @@ exports = module.exports = __webpack_require__(275)(false);
 
 
 // module
-exports.push([module.i, "body{\r\n    font-family: 'open sans';\r\n    margin: 0;\r\n}\r\nul{\r\n    list-style-type: none;\r\n    padding-left: 0;\r\n    display: flex;\r\n}\r\nli{\r\n    padding: 40px;\r\n    border: 2px solid rgb(30,134,255);\r\n    margin-right: 5px;\r\n    border-radius: 10px;\r\n    cursor: pointer;\r\n}\r\nli:hover{\r\n    background-color: rgb(30,134,255);\r\n    color: white;\r\n}\r\nli:active{\r\n    opacity: 0.7;\r\n}\r\n*{\r\n   color: #444444;\r\n}\r\n.main-container{\r\n   padding: 20px;\r\n}\r\n.block{\r\n   display: flex;\r\n   align-items: center;\r\n}\r\n.number-selected{\r\n   background-color: rgb(30,134,255);\r\n   color: white;\r\n}\r\n.bet-input{\r\n   padding: 15px;\r\n   border-radius: 10px;\r\n   border: 1px solid lightgrey;\r\n   font-size: 15pt;\r\n   margin: 0 10px;\r\n}", ""]);
+exports.push([module.i, "body{\r\n    font-family: 'open sans';\r\n    margin: 0;\r\n    color: #CC0033; \r\n    background: #339900;\r\n}\r\nul{\r\n    list-style-type: none;\r\n    padding-left: 0;\r\n    display: flex;\r\n}\r\nli{\r\n    padding: 40px;\r\n    border: 2px solid rgb(30,134,255);\r\n    margin-right: 5px;\r\n    border-radius: 10px;\r\n    cursor: pointer;\r\n}\r\nli:hover{\r\n    background-color: rgb(30,134,255);\r\n    color: white;\r\n}\r\nli:active{\r\n    opacity: 0.7;\r\n}\r\n*{\r\n   color: #444444;\r\n}\r\n.main-container{\r\n   padding: 20px;\r\n}\r\n.block{\r\n   display: flex;\r\n   align-items: center;\r\n}\r\n.number-selected{\r\n   background-color: rgb(30,134,255);\r\n   color: white;\r\n}\r\n.bet-input{\r\n   padding: 15px;\r\n   border-radius: 10px;\r\n   border: 1px solid lightgrey;\r\n   font-size: 15pt;\r\n   margin: 0 10px;\r\n}\r\nspan{\r\n    display: block; \r\n}\r\n     \r\n.outline{ \r\n    width: 110px; \r\n    border: 0px solid black;\r\n    text-align: center; \r\n    padding: 10px; \r\n    margin: 10px; \r\n    background: #FFF \r\n}\r\n.top{ \r\n    text-align: left; \r\n}\r\n.bottom{ \r\n    text-align: right; \r\n}\r\n     \r\n.shadow{ \r\n    box-shadow: 1px 1px 3px #000;\r\n    -moz-box-shadow: 1px 1px 3px #000; \r\n    -webkit-box-shadow: 1px 1px 3px #000; \r\n}\r\n.rounded{ \r\n    border-radius:10px; \r\n    -moz-border-radius:10px; \r\n    -webkit-border-radius:10px; \r\n}", ""]);
 
 // exports
 
