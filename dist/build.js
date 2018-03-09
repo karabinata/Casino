@@ -19276,7 +19276,7 @@ var App = function (_React$Component) {
 		var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
 		_this.state = {
-			latestWinn: { number: 0, color: "F" },
+			latestWinn: { number: "", color: "" },
 			numberOfBets: 0,
 			minimumBet: 0,
 			totalBet: 0,
@@ -19458,14 +19458,23 @@ var App = function (_React$Component) {
 					});
 				}
 			});
-			var filter = { address: web3.eth.accounts[0] };
-			var events = this.state.ContractInstance.allEvents(filter);
+			var winnerEvent = this.state.ContractInstance.LatestWinn();
 
-			events.LatestWinn.watch(function (err, result) {
-				console.log('result: ' + result.number);
+			winnerEvent.watch(function (error, result) {
+				var number = result.args.number.c[0];
+				if (number == 1) {
+					number = "Spades";
+				} else if (number == 2) {
+					number = "Hearts";
+				} else if (number == 3) {
+					number = "Diamons";
+				} else if (number == 4) {
+					number = "Clubs";
+				}
+
 				if (!error) {
 					_this2.setState({
-						latestWinn: { number: result.number, color: result.color }
+						latestWinn: { color: result.args.color, number: number }
 					});
 				}
 			});
@@ -19580,9 +19589,9 @@ var App = function (_React$Component) {
 					_react2.default.createElement(
 						'span',
 						null,
-						this.state.latestWinn.number,
+						this.state.latestWinn.color,
 						' ',
-						console.log(this.state.latestWinn.number)
+						this.state.latestWinn.number
 					)
 				),
 				_react2.default.createElement('hr', null),

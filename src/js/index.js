@@ -7,7 +7,7 @@ class App extends React.Component {
    constructor(props){
       super(props)
       this.state = {
-         latestWinn: {number: 0, color: "F"},
+         latestWinn: {number: "", color: ""},
          numberOfBets: 0,
          minimumBet: 0,
          totalBet: 0,
@@ -217,14 +217,23 @@ updateState(){
             })
          }
 	  })
-	  var filter = { address: web3.eth.accounts[0] };
-	  var events = this.state.ContractInstance.allEvents(filter);
+	  var winnerEvent = this.state.ContractInstance.LatestWinn();
 	  
-      events.watch((err, result) => {
-		  console.log('result: ' + result.number)
+      winnerEvent.watch((error, result) => {
+		  let number = result.args.number.c[0]
+		  if(number == 1) {
+			number = "Spades"
+		  } else if (number == 2) {
+			number = "Hearts"
+		  } else if (number == 3) {
+			number = "Diamons"
+		  } else if (number == 4) {
+			number = "Clubs"
+		  }
+		  
           if(!error){
               this.setState({
-				  latestWinn: {number: result.number, color: result.color}
+				  latestWinn: {color: result.args.color, number: number}
               })
           }
       })
@@ -284,7 +293,7 @@ render(){
             </div>
 <div className="block">
                <b>Latest winning card:</b> &nbsp;
-               <span>{ this.state.latestWinn.number} {console.log(this.state.latestWinn.number)}</span>
+               <span>{this.state.latestWinn.color} {this.state.latestWinn.number}</span>
             </div>
 <hr/>
 <h2>Vote for the next card</h2>
