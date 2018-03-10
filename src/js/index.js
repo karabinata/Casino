@@ -22,17 +22,12 @@ if(typeof web3 != 'undefined'){
       }
 const MyContract = web3.eth.contract([
 	{
-		"constant": true,
+		"constant": false,
 		"inputs": [],
-		"name": "totalBet",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
+		"name": "generateNumberWinner",
+		"outputs": [],
 		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -47,6 +42,52 @@ const MyContract = web3.eth.contract([
 		],
 		"payable": false,
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "playerAddr",
+				"type": "address"
+			}
+		],
+		"name": "checkPlayerExists",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [],
+		"name": "kill",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "number",
+				"type": "uint256"
+			},
+			{
+				"name": "color",
+				"type": "string"
+			}
+		],
+		"name": "bet",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
@@ -79,25 +120,6 @@ const MyContract = web3.eth.contract([
 	},
 	{
 		"constant": true,
-		"inputs": [
-			{
-				"name": "playerAddr",
-				"type": "address"
-			}
-		],
-		"name": "checkPlayerExists",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
 		"inputs": [],
 		"name": "randomNum",
 		"outputs": [
@@ -111,56 +133,17 @@ const MyContract = web3.eth.contract([
 		"type": "function"
 	},
 	{
-		"constant": false,
+		"constant": true,
 		"inputs": [],
-		"name": "generateNumberWinner",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
+		"name": "totalBet",
+		"outputs": [
 			{
-				"indexed": false,
-				"name": "number",
+				"name": "",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"name": "color",
-				"type": "string"
 			}
 		],
-		"name": "LatestWinn",
-		"type": "event"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "number",
-				"type": "uint256"
-			},
-			{
-				"name": "color",
-				"type": "string"
-			}
-		],
-		"name": "bet",
-		"outputs": [],
-		"payable": true,
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [],
-		"name": "kill",
-		"outputs": [],
 		"payable": false,
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -178,9 +161,26 @@ const MyContract = web3.eth.contract([
 		"payable": true,
 		"stateMutability": "payable",
 		"type": "fallback"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "number",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "color",
+				"type": "string"
+			}
+		],
+		"name": "LatestWinn",
+		"type": "event"
 	}
 ])
-      this.state.ContractInstance = MyContract.at("0x9a12fa2b64e3bc5a24f75cf5f849a5de96bcac89")
+      this.state.ContractInstance = MyContract.at("0x4a1520fa57774c362d3f39e415c60184387cab50")
 	}
 
 componentDidMount(){

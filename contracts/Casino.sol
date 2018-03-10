@@ -74,12 +74,12 @@ contract Casino {
         
         string colorWinner = colors[randomColorNumber - 1];
         
-        LatestWinn(randomNum, colorWinner);
+        emit LatestWinn(randomNum, colorWinner);
         distibutePrice(randomNum, colorWinner);
     }
     
     function distibutePrice(uint number, string color) private { 
-        address[50] memory winners;
+        address[5] memory winners;
         uint count = 0;
         
         for(uint i = 0; i < players.length; i++){
